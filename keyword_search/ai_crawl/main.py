@@ -1,12 +1,12 @@
 from fastapi import FastAPI
-import keyword_based_pretzel_ai
+import keyword_search.ai_crawl_keyword as ai_crawl_keyword
 import uvicorn
 
 app = FastAPI()
 
 @app.get("/newsletter")
 async def get_newsletter():
-    keyword_based_pretzel_ai.main()
+    ai_crawl_keyword.main()
     return {"message": "Newsletter generated successfully"}
 
 if __name__ == "__main__":
