@@ -1,0 +1,39 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 루트 경로의 Dockerfile로 이미지 굽기
+      - name: Build Docker image and tag by branch
+        run: docker build -t pretzel-ai:master .
+
+      - name: Save Docker image
+        run: docker save pretzel-ai:master -o pretzel-ai-master.tar
+
+      - name: Deploy
+        uses: easingthemes/ssh-deploy@v5.1.0
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.MASTER_SSH_PRIVATE_KEY }}
+          REMOTE_HOST:      ${{ secrets.MASTER_SSH_HOST }}
+          REMOTE_USER:      ${{ secrets.MASTER_SSH_USERNAME }}
+          REMOTE_PORT:      ${{ secrets.MASTER_SSH_PORT }}
+          SOURCE:           pretzel-ai-master.tar
+          TARGET:           /home/${{ secrets.MASTER_SSH_USERNAME }}/deploy/pretzel-ai-master.tar
+          SCRIPT_BEFORE: |
+            docker stop pretzel-ai-master-container   || true
+            docker rm   pretzel-ai-master-container   || true
+            docker rmi  pretzel-ai:master       || true
+            rm -f /home/${{ secrets.MASTER_SSH_USERNAME }}/deploy/pretzel-ai-master.tar
+          SCRIPT_AFTER: |
+            docker load -i /home/${{ secrets.MASTER_SSH_USERNAME }}/deploy/pretzel-ai-master.tar
+            docker compose -f /home/${{ secrets.MASTER_SSH_USERNAME }}/deploy/docker-compose.yaml up -d pretzel-ai
