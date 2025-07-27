@@ -8,6 +8,8 @@ from apscheduler.triggers.cron import CronTrigger
 import logging
 import pytz
 
+from config import settings
+
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,8 +17,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # MongoDB 연결
-MONGODB_URL = "mongodb+srv://hjcho1027:breadkun12@breadkun.9dcyorh.mongodb.net/?retryWrites=true&w=majority&appName=breadkun"
-client = MongoClient(MONGODB_URL)
+client = MongoClient(settings.mongodb_uri)
 db = client["breadkun_db"]
 collection = db["trending_news"]
 
